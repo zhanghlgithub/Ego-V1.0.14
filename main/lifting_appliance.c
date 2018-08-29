@@ -15,6 +15,8 @@
 
 #include "lifting_appliance.h"
 #include "ingenicplayer.h"
+#include "tips_interface.h"
+#include "mozart_musicplayer.h"
 
 #define Height_detection_1 "/sys/class/gpio/gpio96/value"
 //#define Height_detection_2 "/sys/class/gpio/gpio98/value"
@@ -34,6 +36,11 @@ char res_suspension[7]={0xAA,0XAA,0x02,0x02,0x03,0x05,0}; //磁悬浮处于悬�
 char res_bottom[7]={0xAA,0XAA,0x02,0x02,0x01,0x03,0};   //磁悬浮处于最低端
 char res_drop[7]={0xAA,0XAA,0x02,0x02,0x04,0x06,0};    //磁悬浮脱落警告
 char res_shift_drop[7]={0xAA,0XAA,0x02,0x02,0x05,0x07,0};    //磁悬浮偏移脱落警告
+
+/**     新添加于2018.8.27号        **/
+static pthread_mutex_t tower_drop_voice_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t tower_drop_voice_cound = PTHREAD_COND_INITIALIZER;
+static pthread_t tower_drop_handle_pthread;
 
 int set_com_config(int fd1,int baud_rate,int data_bits,char parity,int stop_bits)
 {
@@ -227,6 +234,7 @@ void lifting_appliance_control(int sign)
 	}   	
 
 	close(fd_ttys1);
+	return;
 }
 
 //功能：读取当前磁悬浮所处的位置，并通知app
@@ -274,11 +282,15 @@ static void *ttys1_read(void *arg)
     		if(strcmp(buffer,res_drop)==0)  
    			{
 				//  lifting_appliance_high=7;	
+				//printf("\n磁悬浮系统偏移脱落.....1\n");
+				//pthread_cond_signal(&tower_drop_voice_cound);	
 				mozart_ingenicplayer_notify_get_hight(23);
    			}
     		if(strcmp(buffer,res_shift_drop)==0)  
     		{
 				//  lifting_appliance_high=7;	
+				printf("\n磁悬浮系统偏移脱落.....2\n");
+				pthread_cond_signal(&tower_drop_voice_cound);	
 				mozart_ingenicplayer_notify_get_hight(23);
 				//suspensionlog(23);
     		}
@@ -734,25 +746,61 @@ static void *lifting_appliance(void *arg)
 	        lifting_appliance_high=high;
 			mozart_ingenicplayer_notify_get_hight(20);	
         }
-	//	printf("\n     %d     ->       %d",lifting_appliance_high,lifting_appliance_go_high);
+		//printf("     %d     ->       %d\n",lifting_appliance_high,lifting_appliance_go_high);
 
 		if(lifting_appliance_go_high>5)
 			lifting_appliance_go_high=5;
         if(lifting_appliance_high<lifting_appliance_go_high)
+        {
 			state=0;
+			// lifting_appliance_control(state);
+		}
+			
 		else if(lifting_appliance_high>lifting_appliance_go_high)
+		{	
 			state=2;
+			//lifting_appliance_control(state);
+		}
+			
 		else if(lifting_appliance_high==lifting_appliance_go_high)
+		{
 			state=1;
+			//lifting_appliance_control(state);
+		}
+			
 
-	//	printf("\n lifting_appliance_state state:%d  %d",lifting_appliance_state,state);
+		//printf("lifting_appliance_state state:%d  %d\n",lifting_appliance_state,state);
 		if(lifting_appliance_state!=state)
 		{
+			//printf("lifting_appliance_state state:%d  %d\n",lifting_appliance_state,state);
 			lifting_appliance_state=state;
             lifting_appliance_control(lifting_appliance_state);
 		}
         usleep(300000);
   	}
+	return NULL;
+}
+
+void *tower_drop_voice_pthread(void *arg)
+{
+	while(1)
+	{
+		printf("开始播放tower脱落语音提示......1\n");
+		pthread_mutex_lock(&tower_drop_voice_mutex);
+		pthread_cond_wait(&tower_drop_voice_cound,&tower_drop_voice_mutex);
+
+		//播放语音提示：
+		printf("开始播放tower脱落语音提示......2\n");
+		if(mozart_musicplayer_get_status(mozart_musicplayer_handler) == PLAYER_PLAYING)
+		{
+			mozart_musicplayer_play_pause_pause(mozart_musicplayer_handler);
+		}
+		if(lifting_appliance_high != 0){
+			mozart_play_key("put_tower_right");	
+			sleep(5);
+		}
+		pthread_mutex_unlock(&tower_drop_voice_mutex);
+	}
 	return NULL;
 }
 
@@ -766,5 +814,10 @@ void lifting_appliance_start()
 	if(0 != pthread_create(&ttys1_read_thread, NULL,ttys1_read, NULL))
 		printf("Can't create ttys1_read!\n");
 	pthread_detach(ttys1_read_thread);
+
+	if(0 != pthread_create(&tower_drop_handle_pthread, NULL,tower_drop_voice_pthread, NULL))
+		printf("Can't create ttys1_read!\n");
+	pthread_detach(tower_drop_handle_pthread);
+	
 }
 

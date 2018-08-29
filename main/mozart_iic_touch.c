@@ -218,35 +218,43 @@ static void *pthread_key_sleep(void *args)
 	
 	char buf_sleep[3] = {0};
 	int fd_sleep = -1;
+	int state = 0;
 	while(1)
 	{
 		fd_sleep = open(ONE_KEY_SLEEP, O_RDONLY);
 		read(fd_sleep,buf_sleep,3);
 		if(buf_sleep[0] == 48)
 		{
-			printf("\n 进入一键助眠功能.......\n");
-			if(mozart_mozart_mode == FREE)
+			//printf("\n 进入一键助眠功能.......\n");
+			if(mozart_mozart_mode == FREE && state == 0)
 			{
+				printf("\n 进入一键助眠功能.......\n");
+				state = 1;
 				mozart_start_mode(SLEEP);
 				system("echo 0 > /sys/class/leds/led-sleep/brightness");
 			}
-			else if(mozart_mozart_mode == SLEEP)
+			else if(mozart_mozart_mode == SLEEP && state == 0)
 			{
-				
+				printf("\n 退出一键助眠功能.......\n");
+				state = 1;
 				mozart_start_mode(FREE);
 				system("echo 1 > /sys/class/leds/led-sleep/brightness");		
 		
 			}
-			else if(mozart_mozart_mode == MED)
+			else if(mozart_mozart_mode == MED && state == 0)
 			{
+				state = 1;
 				//语音提示：当前在冥想模式，进入助眠请关闭脑波仪
+				if(mozart_musicplayer_get_status(mozart_musicplayer_handler) == PLAYER_PLAYING)
+				{
+					mozart_musicplayer_play_pause_pause(mozart_musicplayer_handler);
+				}
 				mozart_play_key("prompt_in_med_mode");
-				sleep(2);
 			}						
 		}
-		else
+		else if(buf_sleep[0] == 49)
 		{
-			//do nothing
+			state = 0;
 		}
 		close(fd_sleep);
 		usleep(1000*50);   //0.05秒
@@ -264,5 +272,5 @@ void start_iic(void){
 	if (err != 0){
 	printf("can't create thread: %s\n", strerror(err));
 	}
-	pthread_detach(iic_pthread);
+		pthread_detach(iic_pthread);
 	}

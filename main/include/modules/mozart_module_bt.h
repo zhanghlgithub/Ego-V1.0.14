@@ -218,6 +218,8 @@ extern unsigned char g_Tower_binnumber[20];		//新添加于2018.7.30号
 
 extern int g_tower_power;		//新添加于2018.8.6号
 extern int g_tower_if_power;	//新添加于2018.8.6号
+
+
 extern int start_bt(void);
 extern int stop_bt(void);
 extern struct info  * get_meddata_form_ble();

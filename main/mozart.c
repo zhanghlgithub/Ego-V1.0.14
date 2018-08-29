@@ -715,7 +715,8 @@ static void play_pause_handler(bool long_press,struct input_event_key_info *myke
 static void power_handler(bool long_press,struct input_event_key_info *mykey)
 {
 	if (long_press)
-	{        
+	{   
+		printf("重新启动系统\n");
     	power_off();
 	}
 }

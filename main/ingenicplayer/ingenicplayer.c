@@ -1809,7 +1809,7 @@ static char *put_music_list(char *data)
 static void raise(char *data)
 {
 	int high;
-    high=  get_object_int("height", data);
+    high=  get_object_int("toheight", data);
 	high=high/20;
 	// lifting_appliance_led(high);
     if(high!=0&&high<4)
@@ -2672,7 +2672,8 @@ static int reset_config(char *data)
 	    system("mkdir -p /mnt/sdcard/data1");
 		//system("mkdir -p /usr/data/wpa_supplicant.conf");
         mozart_mozart_mode=0;
-	    //mozart_start_mode(CONFIG_WIFI);	
+
+		system("reboot");	//重新启动系统
 	}
 	if(type == 2||type == 3 )
     	Pack_write(Reset,NULL,0);
@@ -3711,7 +3712,7 @@ int mozart_ingenicplayer_notify_brain_data()
 	char *reply_json = NULL;
 
 	reply_json = mozart_ingenicplayer_brain_data();
-	printf("\n reply_object:%s \n",reply_json);
+	//printf("\n reply_object:%s \n",reply_json);
 	if(reply_json)
 	{
 		mozart_appserver_notify("usercommand", reply_json);

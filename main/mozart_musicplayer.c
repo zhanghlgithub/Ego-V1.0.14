@@ -974,14 +974,26 @@ static void *music_status_reply_thread(void *arg)
 				if(g_tower_power > 20)	//修改于2018.7.30号
 				{
 					state_five_led = 1;
-					printf("\n此时放松度的值不为0，tower电量大于20\n");
+					//printf("\n此时放松度的值不为0，tower电量大于20\n");
 					lifting_appliance_go_high=((int)(info->X_brain_attention))/20+1;
-					//printf("\n  x:%d",(int)(info->X_brain_attention));	
+					
+					//printf("g_x_relax:%d,,,,,lifting_appliance_go_high:%d\n",(int)(g_x_relax),lifting_appliance_go_high);	
 					if(lifting_appliance_go_high==6)
 					lifting_appliance_go_high=5;
 					lifting_appliance_led(lifting_appliance_go_high);
+#if 0
+屏蔽于2018.8.29号
 					if(lifting_appliance_go_high==1||lifting_appliance_go_high==2)
 					lifting_appliance_go_high=3;
+#endif
+					//修改于2018.8.29号
+					if(lifting_appliance_go_high == 1)
+						lifting_appliance_go_high = 0;
+					if(lifting_appliance_go_high == 2)
+						lifting_appliance_go_high = 4;
+					if(lifting_appliance_go_high == 3 || lifting_appliance_go_high == 4)
+						lifting_appliance_go_high = 5;
+					
 				}
 				else
 				{

@@ -58,7 +58,6 @@ static pthread_cond_t ble_var = PTHREAD_COND_INITIALIZER;
 static bool open_chancal = false;
 
 unsigned char g_Tower_binnumber[20] = {0};	//新添加于2018.7.31号
-//unsigned char g_x_number[20] = {0};
 
 int g_tower_power = 0;
 int g_tower_if_power = 0;
@@ -1377,6 +1376,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 						case 0x05:														//方松度参数(0x05)
 						{
 							info->X_brain_attention=date[i+n+1];
+													
 							//if(get_tower_state())
 							//Pack_write(X_brain,&(info->X_brain_quality),0 );
 							if(med_info.meding&&med_info.med_time>=7)
@@ -1403,7 +1403,7 @@ void Unpack(unsigned char *date,struct info *info,int total_length)
 							}
 							n=n+1;
 							Pack_write(X_brain,&(info->X_brain_quality),0 );	
-							printf("---------------------X_brain_attention=%x    X_brain_concentration=%x  \n",info->X_brain_attention,info->X_brain_concentration);
+							printf("---------------------X_brain_attention=%d    X_brain_concentration=%d  \n",info->X_brain_attention,info->X_brain_concentration);
 							break;
 						}
 						case 0x83:														//频谱参数(0x83)
@@ -3365,7 +3365,7 @@ int ble_config(){
 				sprintf(mac,"%d",(int)CUB_mac[ii]);
 				//itoa((int)CUB_mac[ii], mac, 10);
 				mozart_ini_setkey("/usr/data/system.ini", "ble", ini_name[ii], mac);
-				mozart_ini_setkey("/usr/data/system_beifen.ini", "ble", ini_name[ii], mac);
+				//mozart_ini_setkey("/usr/data/system_beifen.ini", "ble", ini_name[ii], mac);
 			}
 			
 	}
@@ -3381,7 +3381,7 @@ int ble_config(){
 				sprintf(mac,"%d",(int)TOWER_eir[ii]);
 				//itoa((int)TOWER_mac[ii], mac, 10);
 				mozart_ini_setkey("/usr/data/system.ini", "ble", ini_name[6+ii],mac);
-				mozart_ini_setkey("/usr/data/system_beifen.ini", "ble", ini_name[6+ii],mac);  //为什么备份？？
+				//mozart_ini_setkey("/usr/data/system_beifen.ini", "ble", ini_name[6+ii],mac);  //为什么备份？？
 			}
 	}
 	else

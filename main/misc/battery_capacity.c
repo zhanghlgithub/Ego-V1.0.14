@@ -63,11 +63,9 @@ void power_off()
 		printf("\n %d     %d",lifting_appliance_high,lifting_appliance_go_high);
 		if(lifting_appliance_high==0||lifting_appliance_high==1)
         	mozart_power_off();
-
 		i--;
 		sleep(1);
 	}
-	
 	mozart_power_off();
 }
 
@@ -335,14 +333,14 @@ void *manger_tower_battery_thread(void *arg)
 			{
 				mozart_musicplayer_play_pause_pause(mozart_musicplayer_handler);
 			}
-			printf("语音提示电量意念魔方电量低\n");
+			//printf("语音提示电量意念魔方电量低\n");
 			mozart_play_key("tower_low_battery");	
 		}
 		if(((g_tower_power > 20) && state_tower == 0) || ((0==get_tower_state()) && state_tower == 0))
 		{
 			state_tower = 1;
 		}
-		sleep(5);
+		sleep(1);
 	}
 }
 
